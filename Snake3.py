@@ -1,7 +1,9 @@
+#dani and elizabeth's project
 from turtle import *
 import random
 import time
 
+#size
 SIZE = 20
 
 class Part(RawTurtle):
