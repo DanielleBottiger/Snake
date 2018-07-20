@@ -1,9 +1,7 @@
-#dani and elizabeth's project
 from turtle import *
 import random
 import time
 
-#size
 SIZE = 20
 
 class Part(RawTurtle):
@@ -15,7 +13,10 @@ class Part(RawTurtle):
         
     def drawSelf(self, turtle):
         turtle.goto(self.x - SIZE // 2 -1, self.y - SIZE // 2 -1)
-        turtle.color("blue")
+        if random.random() < 0.5:
+            turtle.color("blue")
+        else:
+            turtle.color("black")
         turtle.begin_fill()
         for _ in range(4):
             turtle.forward(SIZE - SIZE // 10)
@@ -57,18 +58,13 @@ class Snake:
         self.headPosition[0], self.headPosition[1] = self.body[-1].x, self.body[-1].y 
         self.nextposition = [self.headPosition[0] + SIZE * self.nextX, self.headPosition[1] + SIZE * self.nextY]
             
-        #if Part(self.nextposition[0], self.nextposition[1], self.screen) not in self.body: 
-            #self.body.append(Part(self.nextposition[0], self.nextposition[1], self.screen)) 
-            #del self.body[0]
-            #self.headPosition[0], self.headPosition[1] = self.body[-1].x, self.body[-1].y 
-            #self.nextposition = [self.headPosition[0] + SIZE * self.nextX, self.headPosition[1] + SIZE * self.nextY]
-        #else:
-            #self.crashed = True
-            
     def testCollision(self):
         for i in range(len(self.body)-1):
             if self.nextposition[0] == self.body[i].x and self.nextposition[1] == self.body[i].y:
                 self.crashed = True
+        if self.nextpositon[0] < 900 or self.nextpositon[0] < 0 or self.nextposition[1] > 900 or self.nextposition[1] < 0:
+            self.crashed = True
+                    
             
     def moveUp(self):
         if self.nextX != 0 and self.nextY != -1:
@@ -82,19 +78,22 @@ class Snake:
     def moveDown(self):
         if self.nextX != 0 and self.nextY != 1:
             self.nextX, self.nextY = 0, -1
-        
     def eatApple(self):
         self.body.append(Part(self.nextposition[0], self.nextposition[1], self.screen))
         self.headPosition[0], self. headPosition[1] = self.body[-1].x, self.body[-1].y
         self.nextPositon = [self.headPosition[0] + SIZE * self.nextX, self.headPosition[1] + SIZE * self.nextY]
     
     def drawSelf(self, turtle):
-        for part in self.body:
-            part.drawSelf(turtle)
+        if not self.crashed:
+            for part in self.body:
+                part.drawSelf(turtle)
+        if self.crashed:
+            turtle.write("Game Over!", move = False, align = "center", font = ("Arial", 20, "normal"))
             
-class Game:
+class Game():
     def __init__(self):
         self.screen = Screen()
+        self.screen.setworldcoordinates(-300, -300, 300, 300)
         self.artist = Turtle(visible = False)
         self.artist.up()
         self.artist.speed("slowest")
@@ -115,7 +114,8 @@ class Game:
         self.screen.onkey(self.snakeDown, "s")
         self.screen.onkey(self.snakeUp, "w")
         self.screen.onkey(self.snakeLeft, "a")
-        self.screen.onkey(self.snakeRight, "d")        
+        self.screen.onkey(self.snakeRight, "d")
+        
         
     def nextFrame(self):
         self.artist.clear()
@@ -131,6 +131,8 @@ class Game:
             self.screen.update()
             self.screen.ontimer(lambda: self.nextFrame(), 100)      
             self.snake.testCollision()
+        else:
+            self.snake.drawSelf(self.artist)
         
     def snakeUp(self):
         if not self.commandpending: 
@@ -162,5 +164,4 @@ screen = Screen()
         
 screen.ontimer(lambda: game.nextFrame(), 100)
         
-screen.mainloop()    
-        
+screen.mainloop() 
