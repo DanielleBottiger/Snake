@@ -61,6 +61,7 @@ class Snake:
         self.menu = True
         self.nextPosition = []
         self.score = 0
+        self.highScore = 0
     
     def moveOneStep(self):
         self.body.append(Part(self.nextPosition[0], self.nextPosition[1], self.screen)) 
@@ -111,7 +112,11 @@ class Snake:
             turtle.goto(-320, 300)
             turtle.color("black")
             turtle.write("Score: " + str(self.score), move = False, align = "left", font = ("Arial", 20, "normal"))
+            turtle.goto(320,300)
+            turtle.write("High Score: " + str(self.highScore), move = False, align = "right", font = ("Arial", 20, "normal"))
         elif self.crashed:
+            if self.score > self.highScore:
+                self.highScore = self.score
             if self.nextPosition[0] > 300:
                 turtle.write("Game Over!", move = False, align = "right", font = ("Arial", 20, "normal"))
                 turtle.goto(turtle.xcor(), turtle.ycor()- 15)
@@ -230,11 +235,12 @@ class Save:
         file = open("save.txt", "r")
         file1 = file.readlines()
         if len(file1) > 0:
-            apple.x = int(file1[0])
-            apple.y = int(file1[1])
-            snake.nextX = int(file1[2])
-            snake.nextY = int(file1[3])
-            for k in range(4, len(file1), 2):
+            snake.highScore = int(file1[0])
+            apple.x = int(file1[1])
+            apple.y = int(file1[2])
+            snake.nextX = int(file1[3])
+            snake.nextY = int(file1[4])
+            for k in range(5, len(file1), 2):
                 x = int(k) - int(k)%20
                 y = int(k+1) - int(k+1)%20
                 snake.body.append(Part(x, y , snake.screen))
@@ -247,6 +253,7 @@ class Save:
     def save(self, apple, snake):
         file = open("save.txt", "w")
         file.truncate(0)
+        file.write(str(snake.highScore) + "\n")
         file.write(str(apple.x) + "\n")
         file.write(str(apple.y) + "\n")
         file.write(str(snake.nextX) + "\n")
