@@ -60,7 +60,6 @@ class Snake:
         self.crashed = False
         self.menu = True
         self.nextPosition = []
-        self.score = 0
         self.highScore = 0
     
     def moveOneStep(self):
@@ -93,7 +92,6 @@ class Snake:
         self.body.append(Part(self.nextPosition[0], self.nextPosition[1], self.screen))
         self.headPosition[0], self. headPosition[1] = self.body[-1].x, self.body[-1].y
         self.nextPositon = [self.headPosition[0] + SIZE * self.nextX, self.headPosition[1] + SIZE * self.nextY]
-        self.score+=1
 
     def drawSelf(self, turtle):
         if self.menu:
@@ -103,37 +101,20 @@ class Snake:
             turtle.goto(0, -30)
             turtle.color("red")
             turtle.write("Press \"c\" to continue your game. \t Press \"n\" for new Game.", move = False, align = "center", font = ("Arial", 30, "normal"))
+            turtle.goto(0, -60)
+            turtle.write("Press \"shift\" to save your game!", move = False, align = "center", font = ("Arial", 30, "normal"))
             turtle.goto(0, -300)
             turtle.color("blue")
             turtle.write("Danielle Bottiger and Elizabeth Ding's Research Project", move = False, align = "center", font = ("Arial", 30, "normal"))
         elif not self.crashed:
             for part in self.body:
                 part.drawSelf(turtle)
-            turtle.goto(-320, 300)
-            turtle.color("black")
-            turtle.write("Score: " + str(self.score), move = False, align = "left", font = ("Arial", 20, "normal"))
-            turtle.goto(320,300)
-            turtle.write("High Score: " + str(self.highScore), move = False, align = "right", font = ("Arial", 20, "normal"))
         elif self.crashed:
-            if self.score > self.highScore:
-                self.highScore = self.score
-            if self.nextPosition[0] > 300:
-                turtle.write("Game Over!", move = False, align = "right", font = ("Arial", 20, "normal"))
-                turtle.goto(turtle.xcor(), turtle.ycor()- 15)
-                turtle.write("Press \"n\" to play again!", move = False, align = "right", font = ("Arial", 20, "normal"))               
-            elif self.nextPosition[0] < -300:
-                turtle.write("Game Over!", move = False, align = "left", font = ("Arial", 20, "normal"))
-                turtle.goto(turtle.xcor(), turtle.ycor()- 15)
-                turtle.write("Press \"n\" to play again!", move = False, align = "left", font = ("Arial", 20, "normal"))
-            elif self.nextPosition[1] < -300:
-                turtle.goto(turtle.xcor(), turtle.ycor()+ 15)
-                turtle.write("Game Over!", move = False, align = "center", font = ("Arial", 20, "normal"))
-                turtle.goto(turtle.xcor(), turtle.ycor()- 15)
-                turtle.write("Press \"n\" to play again!", move = False, align = "center", font = ("Arial", 20, "normal"))                
-            else:
-                turtle.write("Game Over!", move = False, align = "center", font = ("Arial", 20, "normal"))
-                turtle.goto(turtle.xcor(), turtle.ycor()- 15)
-                turtle.write("Press \"n\" to play again!", move = False, align = "center", font = ("Arial", 20, "normal"))
+            turtle.goto(0,0)
+            turtle.write("Game Over!", move = False, align = "center", font = ("Arial", 20, "normal"))
+            turtle.goto(turtle.xcor(), turtle.ycor()- 15)
+            turtle.write("Press \"n\" to play again!", move = False, align = "center", font = ("Arial", 15, "normal"))
+                   
             
 class Game():
     def __init__(self):
@@ -143,6 +124,7 @@ class Game():
         self.artist = Turtle(visible = False)
         self.artist.up()
         self.artist.speed("slowest")
+        self.highScore = 0
         
         self.snake = Snake(self.screen)
         self.apple = Apple(100,0)
@@ -177,13 +159,26 @@ class Game():
             
             self.apple.drawSelf(self.artist)
             self.snake.drawSelf(self.artist)
+            self.artist.color("black")
+                     
+            self.artist.goto(-320, 300)
+            self.artist.write("Score: " + str(len(self.snake.body)-3), move = False, align = "left", font = ("Arial", 20, "normal"))
+                        
             self.screen.update()
-            self.screen.ontimer(lambda: self.nextFrame(), 100)      
+            self.screen.ontimer(lambda: self.nextFrame(), 110)      
             self.snake.testCollision()
         elif self.snake.menu or self.snake.crashed:
             self.snake.drawSelf(self.artist)
             self.screen.onkey(self.newGame,"n")
             self.screen.onkey(self.continueGame, "c")
+            self.artist.goto(320, 300)
+            self.artist.write("High Score: " + str(self.highScore), move = False, align = "right", font = ("Arial", 20, "normal"))
+            
+        if len(self.snake.body)-3 >= self.highScore and self.snake.crashed:
+            self.highScore = len(self.snake.body)-3
+            self.artist.goto(320, 280)
+            self.artist.write("NEW HIGH SCORE!", move = False, align = "right", font = ("Arial", 20, "normal"))
+            self.reader.save(self.apple, self.snake)
         
     def snakeUp(self):
         if not self.commandpending: 
@@ -234,7 +229,7 @@ class Save:
     def read(self, game, apple, snake):
         file = open("save.txt", "r")
         file1 = file.readlines()
-        if len(file1) > 0:
+        if len(file1) > 0 and not snake.crashed:
             snake.highScore = int(file1[0])
             apple.x = int(file1[1])
             apple.y = int(file1[2])
