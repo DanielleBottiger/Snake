@@ -30,9 +30,6 @@ class Part(RawTurtle):
             turtle.forward(SIZE - SIZE // 10)
             turtle.left(90)
         turtle.end_fill()
-    
-    pygame.mixer.Channel(0).play(music)
-    
         
 class Apple:
     def __init__(self, x, y):        
@@ -40,15 +37,14 @@ class Apple:
         self.y = y
         
     def changeLocation(self, snake):
+        locations = []
         for i in range(len(snake.body)):
-            part = snake.body[i]
-            self.x = random.randint(0, SIZE) * SIZE - 200
-            self.y = random.randint(0, SIZE) * SIZE - 200
-            if self.x == part.x and self.y == part.y:
-                self.x = random.randint(0, SIZE) * SIZE - 200
-                self.y = random.randint(0, SIZE) * SIZE - 200
-                i = 0
-            
+            locations.append((snake.body[i].x, snake.body[i].y))
+        self.x = random.randint(-16, 16) * SIZE
+        self.y = random.randint(-16, 16) * SIZE            
+        for i in locations:
+            if (self.x, self.y) == i:
+                self.changeLocation(snake)
         
     def drawSelf(self, turtle):
         turtle.goto(self.x - SIZE // 2 - 1, self.y - SIZE // 2 -1)
@@ -137,6 +133,7 @@ class Game():
         self.artist.up()
         self.artist.speed("slowest")
         self.highScore = 0
+        self.reader.readHighScore(self)
         self.winning = False
         
         self.snake = Snake(self.screen)
@@ -196,33 +193,35 @@ class Game():
             self.artist.goto(320, 280)
             self.artist.write("NEW HIGH SCORE!", move = False, align = "right", font = ("Arial", 20, "normal"))            
             pygame.mixer.Channel(0).play(cheer)
+            self.reader.saveHighScore(self)
             
         if not self.winning and self.snake.crashed:
-            pygame.mixer.Channel(0).play(gameover)              
+            pygame.mixer.Channel(0).play(gameover)
+            
+        if not pygame.mixer.Channel(0).get_busy():
+            pygame.mixer.Channel(0).play(music) 
+        self.commandpending = False
         
     def snakeUp(self):
         if not self.commandpending: 
             self.commandpending = True
             self.snake.moveUp()
-            self.commandpending = False
     
     def snakeDown(self):
         if not self.commandpending:
             self.commandpending = True
             self.snake.moveDown()
-            self.commandpending = False
+            
     
     def snakeLeft(self):
         if not self.commandpending:
             self.commandpending = True
             self.snake.moveLeft()
-            self.commandpending = False
     
     def snakeRight(self):
         if not self.commandpending:
             self.commandpending = True
             self.snake.moveRight()
-            self.commandpending = False
             
     def newGame(self):
         self.snake = Snake(self.screen)
@@ -277,11 +276,21 @@ class Save:
         for x in range(len(snake.body)):
             file.write(str(snake.body[x].x) + "\n")
             file.write(str(snake.body[x].y) + "\n")
+            
+            
+    def saveHighScore(self, game):
+        file = open("HighScore.txt", "w")
+        file.write(str(game.highScore) + "\n")
+        
+    def readHighScore(self, game):
+        file = open("HighScore.txt", "r")
+        file1 = file.readlines()
+        game.highScore = int(file1[-1])
         
 game = Game()
         
 screen = Screen()
         
-screen.ontimer(lambda: game.nextFrame(), 100)
+screen.ontimer(lambda: game.nextFrame(), 1000)
         
 screen.mainloop() 
